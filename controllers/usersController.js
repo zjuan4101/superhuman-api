@@ -63,7 +63,7 @@ const update = async (req, res) => {
             if (!isValidAction) {
                 return res.status(400).json({ message: 'Invalid updates' })
             }
-            updates.forEach(update => (user[update] = req.body[update]))
+            update.forEach(update => (user[update] = req.body[update]))
             await user.save()
             res.json(user)
         
@@ -85,3 +85,20 @@ const destroy = async (req, res) => {
         res.status(400).json({ message: error.message })
     }
 }
+
+// login
+const loginUser = async (req, res) => {
+    try {
+        const { username, password } = req.body
+        const user = await User.findOne({ username })
+
+        if (!user || !await bcrypt.compare(password, user.password)) {
+            return res.status(401).json({ message: 'Invalid username or password' })
+        }
+        const token = await user.generateAuthToken()
+        res.json({ user, token })
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
+module.exports = { create, index, show, update, destroy, loginUser }

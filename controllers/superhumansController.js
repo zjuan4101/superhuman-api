@@ -4,10 +4,10 @@ const jwt = require('jsonwebtoken')
 
 // create
 const create = async (req, res) => {
-    const { name, alias, power, weakness, isHero } = req.body
+    const { name, alias, power, weakness, isHero, userId } = req.body
 
     try {
-        const newSuperhuman = new Superhuman({ name, alias, power, weakness, isHero })
+        const newSuperhuman = new Superhuman({ name, alias, power, weakness, isHero, userId })
         const savedSuperhuman = await newSuperhuman.save()
         res.status(200).json(savedSuperhuman)
     } catch (error) {
@@ -32,7 +32,7 @@ const show = async (req, res) => {
         const superhuman = await Superhuman.findOne({ _id: id })
         if(!superhuman) {
             res.status(404).json({ message: 'Superhuman not found' })
-            retrun
+            return
         }
 
         res.json(superhuman)
@@ -65,12 +65,17 @@ const destroy = async (req, res) => {
 
     try {
         const deletedSuperhuman = await Superhuman.findOneAndDelete({ _id: id })
-        if(!deletedSuperhuman) {
+        if (!deletedSuperhuman) {
             res.status(404).json({ message: 'Superhuman not found' })
-            retrun
+            return // Add this return statement
         }
+
+        // If the superhuman is successfully deleted, you can send a success response here if needed
+        res.json({ message: 'Superhuman deleted successfully' })
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
 }
 
+
+module.exports = { create, index, show, update, destroy }
