@@ -9,7 +9,7 @@ router.get('/', superhumanController.index)
 // show
 router.get('/:id', superhumanController.show)
 // update
-router.put(':id', superhumanController.update)
+router.put('/:id', superhumanController.update)
 // delete
 router.delete('/:id', superhumanController.destroy)
 

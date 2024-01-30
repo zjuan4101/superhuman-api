@@ -67,10 +67,9 @@ const destroy = async (req, res) => {
         const deletedSuperhuman = await Superhuman.findOneAndDelete({ _id: id })
         if (!deletedSuperhuman) {
             res.status(404).json({ message: 'Superhuman not found' })
-            return // Add this return statement
+            return
         }
 
-        // If the superhuman is successfully deleted, you can send a success response here if needed
         res.json({ message: 'Superhuman deleted successfully' })
     } catch (error) {
         res.status(400).json({ message: error.message })
