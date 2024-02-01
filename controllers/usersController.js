@@ -2,14 +2,14 @@ const User = require('../models/user')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-// authorize
+// Authentication middleware
 exports.auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization').replace('Bearer ', '')
-    const data = jwt.verify(token, 'secret')
+    const data = jwt.verify(token, process.env.JWT_SECRET)
     const user = await User.findOne({ _id: data._id })
     if (!user) {
-      throw new Error()
+      throw new Error('User not found')
     }
     req.user = user
     next()
@@ -17,86 +17,79 @@ exports.auth = async (req, res, next) => {
     res.status(401).send('Not authorized')
   }
 }
-//create
-const create = async (req, res) => {
-    const { username, password, firstName, lastName } = req.body
-  const newUser = new User({ username, password, firstName, lastName })
+
+// Create a new user
+exports.create = async (req, res) => {
+  try{
+    const user = new User(req.body)
+    await user.save()
+    const token = await user.generateAuthToken()
+    res.status(200).json({ user, token })
+  } catch(error){
+    res.status(400).json({message: error.message})
+  }
+}
+
+// Get all users
+exports.index = async (req, res) => {
+  try {
+    const users = await User.find()
+    res.json(users)
+  } catch (error) {
+    res.status(400).send(error.message)
+  }
+}
+
+// Get a user by ID
+exports.show = async (req, res) => {
+  const id = req.params.id
 
   try {
-    const savedUser = await newUser.save();
-    const token = await savedUser.generateAuthToken()
-    res.status(200).json({ user: savedUser, token })
+    const user = await User.findOne({ _id: id })
+    if (!user) {
+      res.status(404).send('User not found')
+    }
+    res.json(user)
+  } catch (error) {
+    res.status(400).send(error.message)
+  }
+}
+
+// Update a user
+exports.update = async (req, res) => {
+  try {
+    const updates = Object.keys(req.body)
+    const user = await User.findOne({ _id: req.params.id })
+    updates.forEach(update => user[update] = req.body[update])
+    await user.save()
+    res.json(user)
   } catch (error) {
     res.status(400).json({ message: error.message })
   }
 }
 
-// index
-const index = async (req, res) => {
-    try {
-        const users = await User.find()
-        res.json(users)
-    } catch (error) {
-        res.status(400).send(error.message)
-    }
+// Delete a user
+exports.destroy = async (req, res) => {
+  try{
+    await req.user.deleteOne()
+    res.json({ message: 'User deleted' })
+  }catch(error){
+    res.status(400).json({message: error.message})
+  }
 }
 
-// show
-const show = async (req, res) => {
-    const id = req.params._id
+// Login user
+exports.loginUser = async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.body.username })
 
-    try {
-        const user = await User.findOne(id)
-        if(!user) {
-            res.status(404).send('User not found')
-        }
-        res.json(user)
-    } catch (error) {
-        res.status(400).send(error.message)
+    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+      return res.status(400).json({ message: 'Invalid login credentials' })
+    } else{
+      const token = await user.generateAuthToken()
+    res.json({ user, token })
     }
+  } catch (error) {
+    res.status(400).json({ message: error.message })
+  }
 }
-
-//update
-const update = async (req, res) => {
-    try{
-        const updates = Object.keys(req.body)
-        const user = await User.findOne({ _id: req.params.id })
-        updates.forEach(update => user[update] = req.body[update])
-        await user.save()
-        res.json(user)
-      }catch(error){
-        res.status(400).json({message: error.message})
-      }
-}
-
-// delete 
-const destroy = async (req, res) => {
-    const id = req.params.id
-    try {
-        const deletedUser = await User.findOneAndDelete({ _id: id })
-        if (!deletedUser) {
-            return res.status(404).json({ message: 'User not found' })
-        }
-        return res.json(deletedUser)
-    } catch (error) {
-        console.error('Error deleting user:', error);
-        return res.status(500).json({ message: 'Internal server error' })
-    }
-};
-
-
-// login
-const loginUser = async (req, res) => {
-    try{
-        const user = await User.findOne({ username: req.body.username })
-        if (!user || !await bcrypt.compare(req.body.password, user.password)) {
-          res.status(400).send('Invalid login credentials')
-        } else {
-          const token = await user.generateAuthToken()
-          res.json({ user, token })
-        }
-      } catch(error){
-        res.status(400).json({message: error.message})
-      }
-};
-module.exports = { create, index, show, update, destroy, loginUser }

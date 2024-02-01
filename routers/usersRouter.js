@@ -9,9 +9,9 @@ router.get('/', userController.index)
 // show
 router.get('/:id', userController.show)
 // update
-router.put('/:id', userController.update)
+router.put('/:id', userController.auth, userController.update)
 // delete
-router.delete('/:id', userController.destroy)
+router.delete('/:id', userController.auth, userController.destroy)
 
 // login 
 router.post('/login', userController.loginUser)

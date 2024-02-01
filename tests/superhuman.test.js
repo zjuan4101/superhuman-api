@@ -35,8 +35,14 @@ describe('Superhuman API endpoints', () => {
                 })
                 .expect(200);
 
-            expect(response.body).toHaveProperty('name', 'Superman')
-            expect(response.body).toHaveProperty('alias', 'Clark Kent')
+            expect(response.body.name).toEqual('Superman')
+            expect(response.body.alias).toEqual('Clark Kent')
+            expect(response.body.power).toEqual('Flight')
+            expect(response.body.weakness).toEqual('Kryptonite')
+            expect(response.body.isHero).toBeTruthy()
+            expect(response.body.userId).toEqual('65b572b9d12e04500b4fe2ce')
+
+
 
             authToken = response.body.token
             createdSuperhumanId = response.body._id
@@ -47,21 +53,37 @@ describe('Superhuman API endpoints', () => {
             const response = await request(app)
                 .get('/superhumans')
                 .set('Authorization', `Bearer ${authToken}`)
-                .expect(200)
-
+            
+            expect(response.statusCode).toBe(200)
             expect(Array.isArray(response.body)).toBe(true)
-        });
+
+            for(let i = 0; i < response.body.length; i++){
+                expect(response.body[i]).toHaveProperty('name')
+                expect(response.body[i]).toHaveProperty('alias')
+                expect(response.body[i]).toHaveProperty('power')
+                expect(response.body[i]).toHaveProperty('weakness')
+                expect(response.body[i]).toHaveProperty('isHero')
+                expect(response.body[i]).toHaveProperty('userId')
+
+            }
+        })
 
     // Test getting a specific superhuman by ID
         test('should get a superhuman by ID', async () => {
             const response = await request(app)
                 .get(`/superhumans/${createdSuperhumanId}`)
                 .set('Authorization', `Bearer ${authToken}`)
-                .expect(200)
-
+            
+            expect(response.statusCode).toBe(200)
+            expect(response.body.name).toEqual('Superman')
+            expect(response.body.alias).toEqual('Clark Kent')
+            expect(response.body.power).toEqual('Flight')
+            expect(response.body.weakness).toEqual('Kryptonite')
+            expect(response.body.isHero).toBeTruthy()
+            expect(response.body.userId).toEqual('65b572b9d12e04500b4fe2ce')
             expect(response.body._id).toBe(createdSuperhumanId)
             
-        });
+        })
 
     // Test updating a superhuman
         test('should update a superhuman', async () => {
@@ -69,16 +91,18 @@ describe('Superhuman API endpoints', () => {
                 .put(`/superhumans/${createdSuperhumanId}`)
                 .set('Authorization', `Bearer ${authToken}`)
                 .send({ name: 'Superwoman' })
-                .expect(200)
-
+            
+            expect(response.statusCode).toBe(200)
             expect(response.body.name).toBe('Superwoman');
         })
 
     // Test deleting a superhuman
         test('should delete a superhuman', async () => {
-            await request(app)
+            const response = await request(app)
                 .delete(`/superhumans/${createdSuperhumanId}`)
                 .set('Authorization', `Bearer ${authToken}`)
-                .expect(200)
+            
+            expect(response.statusCode).toBe(200)
+            expect(response.body.msg).toEqual('Superhuman deleted successfully')
         })
     })

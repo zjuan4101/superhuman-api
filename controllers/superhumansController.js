@@ -2,8 +2,8 @@ const Superhuman = require('../models/superhuman')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-// create
-const create = async (req, res) => {
+// Create
+exports.create = async (req, res) => {
     const { name, alias, power, weakness, isHero, userId } = req.body
 
     try {
@@ -15,8 +15,8 @@ const create = async (req, res) => {
     }
 }
 
-// index
-const index = async (req, res) => {
+// Index
+exports.index = async (req, res) => {
     try {
         const superhumans = await Superhuman.find()
         res.json(superhumans)
@@ -25,12 +25,12 @@ const index = async (req, res) => {
     }
 }
 
-// show
-const show = async (req, res) => {
+// Show
+exports.show = async (req, res) => {
     const id = req.params.id
     try {
         const superhuman = await Superhuman.findOne({ _id: id })
-        if(!superhuman) {
+        if (!superhuman) {
             res.status(404).json({ message: 'Superhuman not found' })
             return
         }
@@ -41,14 +41,14 @@ const show = async (req, res) => {
     }
 }
 
-// update
-const update = async (req, res) => {
+// Update
+exports.update = async (req, res) => {
     const id = req.params.id
     const updates = req.body
 
     try {
-        const updatedSuperhuman = await Superhuman.findOneAndUpdate({ _id: id}, updates, { new: true })
-        if(!updatedSuperhuman) {
+        const updatedSuperhuman = await Superhuman.findOneAndUpdate({ _id: id }, updates, { new: true })
+        if (!updatedSuperhuman) {
             res.status(404).json({ message: 'Superhuman not found' })
             return
         }
@@ -57,10 +57,10 @@ const update = async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
-}
+};
 
-// delete
-const destroy = async (req, res) => {
+// Delete
+exports.destroy = async (req, res) => {
     const id = req.params.id
 
     try {
@@ -70,10 +70,8 @@ const destroy = async (req, res) => {
             return
         }
 
-        res.json({ message: 'Superhuman deleted successfully' })
+        res.status(200).json({msg: 'Superhuman deleted successfully'})
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
-}
-
-module.exports = { create, index, show, update, destroy }
+};

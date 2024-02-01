@@ -4,23 +4,22 @@ const app = require('../app')
 const User = require('../models/user')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
-
+const server = app.listen(8080, () => console.log('Testing on Port 8080'))
 let mongoServer
 
 beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create()
-    const mongoUri = mongoServer.getUri()
-    await mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
+    mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true, useUnifiedTopology: true })
+})
 
 afterAll(async () => {
-    await mongoose.disconnect()
-    await mongoServer.stop()
-});
+    await mongoose.connection.close()// shut off mongoose connection with mongodb
+    mongoServer.stop()
+    server.close()
+})
 
 describe('User API endpoints', () => {
-    let authToken
-    let createdUserId
+    
 
     // Test creating a user
         test('should create a new user', async () => {
@@ -36,14 +35,10 @@ describe('User API endpoints', () => {
                 
             // Check if response body includes the username property
             expect(response.body).toHaveProperty('user')
-            expect(response.body.user).toHaveProperty('username', 'testuser')
-            expect(response.body.user).toHaveProperty('firstName', 'Test')
-            expect(response.body.user).toHaveProperty('lastName', 'User')
+            expect(response.body.user.username).toEqual('testuser')
+            expect(response.body.user.firstName).toEqual('Test')
+            expect(response.body.user.lastName).toEqual('User')
             expect(response.body).toHaveProperty('token')
-            
-            // Store the created user ID and token for later tests
-            authToken = response.body.token
-            createdUserId = response.body.user._id
         })
 
 
@@ -51,9 +46,8 @@ describe('User API endpoints', () => {
         test('should get all users', async () => {
             const response = await request(app)
                 .get('/users')
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(200)
-
+            
+            expect(response.statusCode).toBe(200)
             // Verify response body structure and content
             expect(Array.isArray(response.body)).toBe(true)
             for(let i = 0; i < response.body.length; i++){
@@ -65,54 +59,61 @@ describe('User API endpoints', () => {
         })
     
 
-    // Test getting a specific user by ID
-        test('should get a user by ID', async () => {
-            await request(app)
-                .get(`/users/${createdUserId}`)
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(200)
-                
+    // Test showing user
+        test('should get a user by ID to show', async () => {
+            const user = new User({ username: 'testuser2', password: 'password', firstName: 'Test', lastName: 'User' })
+            await user.save()
+            const response = await request(app)
+                .get(`/users/${user._id}`)
+            
+            expect(response.statusCode).toBe(200)
+            expect(response.body.username).toEqual('testuser2')
+            expect(response.body.firstName).toEqual('Test')
+            expect(response.body.lastName).toEqual('User')    
         })
     
 
     // Test updating a user
         test('should update a user', async () => {
-            // Ensure there's a created user before attempting to update
-            expect(createdUserId).toBeTruthy()
+            const user = new User({ username: 'testuser3', password: 'password', firstName: 'Test', lastName: 'User' })
+            await user.save()
+            const token = await user.generateAuthToken()
 
             const response = await request(app)
-                .put(`/users/${createdUserId}`)
-                .set('Authorization', `Bearer ${authToken}`)
+                .put(`/users/${user._id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({ username: 'updatedusername' })
-                .expect(200)
             
-            // Additional checks for updated user data
-            expect(response.body.username).toBe('updatedusername')
+            
+            expect(response.statusCode).toBe(200)
+            expect(response.body.username).toEqual('updatedusername')
         })
     
 
     // Test deleting a user
         test('should delete a user', async () => {
-            // Ensure there's a created user before attempting to delete
-            expect(createdUserId).toBeTruthy();
+            const user = new User({ username: 'testuser4', password: 'password', firstName: 'Test', lastName: 'User' })
+            await user.save()
+            const token = await user.generateAuthToken()
 
-            await request(app)
-                .delete(`/users/${createdUserId}`)
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(200)
+            const response = await request(app)
+                .delete(`/users/${user._id}`)
+                .set('Authorization', `Bearer ${token}`)
+                
+                expect(response.statusCode).toBe(200)
         })
 
     // Test user login
         test('It should login a user', async () => {
-            const user = new User({ username: 'testuser', password: 'password', firstName: 'Test', lastName: 'User' })
+            const user = new User({ username: 'testuser5', password: 'password', firstName: 'Test', lastName: 'User' })
             await user.save()
         
             const response = await request(app)
               .post('/users/login')
-              .send({ username: 'testuser', password: 'password' })
+              .send({ username: 'testuser5', password: 'password' })
             
             expect(response.statusCode).toBe(200)
-            expect(response.body.user.username).toEqual('testuser')
+            expect(response.body.user.username).toEqual('testuser5')
             expect(response.body.user.firstName).toEqual('Test')
             expect(response.body.user.lastName).toEqual('User')
             expect(response.body).toHaveProperty('token')
