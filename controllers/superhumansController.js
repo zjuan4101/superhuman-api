@@ -4,10 +4,9 @@ const jwt = require('jsonwebtoken')
 
 // Create
 exports.create = async (req, res) => {
-    const { name, alias, power, weakness, isHero, userId } = req.body
-
     try {
-        const newSuperhuman = new Superhuman({ name, alias, power, weakness, isHero, userId })
+        const newSuperhuman = new Superhuman(req.body)
+        newSuperhuman.userId = req.user._id
         const savedSuperhuman = await newSuperhuman.save()
         res.status(200).json(savedSuperhuman)
     } catch (error) {
@@ -74,4 +73,4 @@ exports.destroy = async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
-};
+}
