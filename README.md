@@ -32,7 +32,7 @@ MONGODB_URI=your-mongodb-connection-string
 JWT_SECRET=your-secret-key
 ```
 Replace your-mongodb-connection-string with your MongoDB connection string and your-secret-key with your JWT secret key.
-You can create a simple SHA56 hash at [link] (https://emn178.github.io/online-tools/sha256.html)
+You can create a simple SHA56 hash at https://emn178.github.io/online-tools/sha256.html
 
 ## Usage
 Start the server:
