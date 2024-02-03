@@ -102,12 +102,19 @@ If you want to create your own repository for the Superhuman API:
 ```
 git init
 ```
-3. Add the remote repository URL using the following command:
+3. Create a .gitignore file in the root directory of your project.
+4. Add the following entries to your .gitignore file:
+```
+node_modules
+.env
+```
+These entries will prevent node_modules directory and .env file from being pushed to GitHub.
+5. Add the remote repository URL using the following command:
 ```
 git remote add origin https://github.com/your-username/superhuman-api.git
 ```
 Replace your-username with your GitHub username.
-4. Now you can push your code to the remote repository:
+6. Now you can push your code to the remote repository:
 ```
 git push -u origin main
 ```
