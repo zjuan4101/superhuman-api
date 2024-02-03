@@ -42,6 +42,15 @@ npm start
 
 Access the API endpoints using your favorite HTTP client or tools like curl or Postman. You'll use localhost:3000/users or localhost:3000/superhumans
 
+Before creating superhumans, make sure you have registered a user and logged in to obtain the authentication token.
+
+1. Register a new user:
+Send a POST request to /users with the user details (username, password, firstName, lastName).
+2. Log in:
+Send a POST request to /users/login with the username and password to obtain the authentication token.
+3. Use the obtained token in the Authorization header for creating superhumans:
+Add Authorization: Bearer <token> to the headers of your request to /superhumans endpoint.
+
 ## API Endpoints
 ### Superhuman API
 - POST /superhumans: Create a new superhuman.
