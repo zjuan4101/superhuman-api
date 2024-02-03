@@ -28,7 +28,7 @@ Create a .env file in the root directory of the project.
 Add the following environment variables to the .env file:
 ```
 PORT=3000
-MONGODB_URI=your-mongodb-connection-string
+MONGO_URI=your-mongodb-connection-string
 JWT_SECRET=your-secret-key
 ```
 Replace your-mongodb-connection-string with your MongoDB connection string and your-secret-key with your JWT secret key.
